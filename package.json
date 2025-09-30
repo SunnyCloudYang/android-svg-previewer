@@ -7,15 +7,44 @@
     "vscode": "^1.10.0"
   },
   "categories": [
-    "Other"
+    "Programming Languages",
+    "Visualization"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "onLanguage:xml"
+  ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "androidsvgsupport.helloWorld",
-        "title": "Hello World"
+        "command": "androidsvgsupport.showPreview",
+        "title": "Show Vector Drawable Preview",
+        "category": "Android SVG",
+        "icon": "$(open-preview)"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "androidsvgsupport.showPreview",
+          "when": "resourceLangId == xml && resourcePath =~ /drawable/",
+          "group": "navigation"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "androidsvgsupport.showPreview",
+          "when": "resourceLangId == xml && resourcePath =~ /drawable/",
+          "group": "navigation"
+        }
+      ]
+    },
+    "keybindings": [
+      {
+        "command": "androidsvgsupport.showPreview",
+        "key": "ctrl+shift+v",
+        "mac": "cmd+shift+v",
+        "when": "resourceLangId == xml && resourcePath =~ /drawable/"
       }
     ]
   },

@@ -1,26 +1,74 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
-import * as vscode from 'vscode';
+import * as vscode from "vscode";
+import { AndroidVectorDrawablePreviewPanel } from "./previewPanel";
+import { AndroidVectorDrawableHoverProvider } from "./hoverProvider";
+import { isAndroidVectorDrawable } from "./utils";
 
-// This method is called when your extension is activated
-// Your extension is activated the very first time the command is executed
+/**
+ * This method is called when the extension is activated
+ */
 export function activate(context: vscode.ExtensionContext) {
+  console.log("AndroidSVGSupport extension is now active!");
 
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "androidsvgsupport" is now active!');
+  // Register the preview command
+  const previewCommand = vscode.commands.registerCommand(
+    "androidsvgsupport.showPreview",
+    () => {
+      const editor = vscode.window.activeTextEditor;
+      if (!editor) {
+        vscode.window.showErrorMessage("No active editor found");
+        return;
+      }
 
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with registerCommand
-	// The commandId parameter must match the command field in package.json
-	const disposable = vscode.commands.registerCommand('androidsvgsupport.helloWorld', () => {
-		// The code you place here will be executed every time your command is executed
-		// Display a message box to the user
-		vscode.window.showInformationMessage('Hello World from AndroidSVGSupport!');
-	});
+      const document = editor.document;
+      if (!isAndroidVectorDrawable(document)) {
+        vscode.window.showWarningMessage(
+          "This file is not an Android vector drawable"
+        );
+        return;
+      }
 
-	context.subscriptions.push(disposable);
+      AndroidVectorDrawablePreviewPanel.createOrShow(
+        context.extensionUri,
+        document
+      );
+    }
+  );
+
+  // Register the hover provider for XML files
+  const hoverProvider = vscode.languages.registerHoverProvider(
+    { language: "xml", pattern: "**/drawable/**/*.xml" },
+    new AndroidVectorDrawableHoverProvider()
+  );
+
+  // Watch for active editor changes to update preview
+  const editorChangeListener = vscode.window.onDidChangeActiveTextEditor(
+    (editor) => {
+      if (editor && isAndroidVectorDrawable(editor.document)) {
+        AndroidVectorDrawablePreviewPanel.updateIfVisible(editor.document);
+      }
+    }
+  );
+
+  // Watch for document changes to update preview
+  const documentChangeListener = vscode.workspace.onDidChangeTextDocument(
+    (event) => {
+      if (isAndroidVectorDrawable(event.document)) {
+        AndroidVectorDrawablePreviewPanel.updateIfVisible(event.document);
+      }
+    }
+  );
+
+  context.subscriptions.push(
+    previewCommand,
+    hoverProvider,
+    editorChangeListener,
+    documentChangeListener
+  );
 }
 
-// This method is called when your extension is deactivated
-export function deactivate() {}
+/**
+ * This method is called when the extension is deactivated
+ */
+export function deactivate() {
+  AndroidVectorDrawablePreviewPanel.dispose();
+}

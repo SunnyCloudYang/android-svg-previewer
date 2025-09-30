@@ -1,71 +1,176 @@
-# androidsvgsupport README
+# Android SVG Support
 
-This is the README for your extension "androidsvgsupport". After writing up a brief description, we recommend including the following sections.
+A Visual Studio Code extension that provides comprehensive support for Android Vector Drawable files with live preview, hover tooltips, and advanced viewing features.
 
 ## Features
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+### 🎨 Live Preview Panel
 
-For example if there is an image subfolder under your extension project workspace:
+- **Side-by-side preview** of Android vector drawable XML files
+- Opens automatically in a split view when you click the preview button
+- Real-time updates as you edit the XML source code
+- Beautiful modern UI with VS Code theme integration
 
-\!\[feature X\]\(images/feature-x.png\)
+![Preview Panel Feature](https://via.placeholder.com/600x300?text=Preview+Panel)
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+### 🔍 Smart Zoom & Scaling
+
+- **Auto-fit to panel** - Automatically scales drawables to fit the preview panel
+- **Interactive zoom controls** - Zoom in/out with buttons or keyboard shortcuts
+- **Mouse wheel zoom** - Ctrl/Cmd + Mouse Wheel for precise zoom control
+- **Scale indicator** - Always shows current zoom percentage
+- **Visual bounds display** - Dashed border showing the drawable boundaries with dimensions
+
+### 📐 Visual Information Display
+
+- **Dimensions display** - Shows the actual size and viewport dimensions
+- **Scale percentage** - Real-time scale information in the toolbar
+- **Bounds overlay** - Visual representation of the drawable's bounds
+- **Checkerboard background** - Professional transparency background pattern
+
+### 💡 Hover Preview (Quick Preview)
+
+- **Instant preview on hover** - Hover over `<vector>` or `<path>` tags to see a preview
+- **Individual path preview** - See individual paths when hovering over `<path>` elements
+- **Color information** - Shows fill and stroke colors in the hover tooltip
+- **Dimension details** - Displays size and viewport information
+
+### ⚡ Smart Features
+
+- **Automatic detection** - Only activates for Android vector drawable XML files
+- **Real-time sync** - Preview updates automatically when you edit the source
+- **Keyboard shortcuts** - Ctrl+Shift+V (Cmd+Shift+V on Mac) to open preview
+- **Multiple access points** - Available via command palette, editor title button, and context menu
+
+## Usage
+
+### Opening the Preview
+
+There are multiple ways to open the vector drawable preview:
+
+1. **Editor Title Button**: Click the preview icon in the editor title bar when viewing a drawable XML file
+2. **Context Menu**: Right-click in the editor and select "Show Vector Drawable Preview"
+3. **Command Palette**: Press `Ctrl+Shift+P` (or `Cmd+Shift+P` on Mac) and type "Show Vector Drawable Preview"
+4. **Keyboard Shortcut**: Press `Ctrl+Shift+V` (or `Cmd+Shift+V` on Mac)
+
+### Zoom Controls
+
+- **Zoom In**: Click the "+" button, press `+` or `=` key
+- **Zoom Out**: Click the "-" button, press `-` or `_` key
+- **Fit to View**: Click "Fit to View" button or press `0` key
+- **Mouse Wheel**: Hold `Ctrl` (or `Cmd` on Mac) and scroll
+
+### Hover Previews
+
+Simply hover your mouse over:
+
+- **`<vector>` tag** - See the complete drawable preview
+- **`<path>` tag** - See individual path preview with color information
 
 ## Requirements
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+- Visual Studio Code version 1.10.0 or higher
+- Android vector drawable XML files (typically in `res/drawable/` directory)
+
+## Supported File Format
+
+This extension works with Android Vector Drawable XML files that contain a `<vector>` root element:
+
+```xml
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M12,2L2,7v10c0,5.55,3.84,10.74,9,12c5.16,-1.26,9,-6.45,9,-12V7L12,2z"/>
+</vector>
+```
 
 ## Extension Settings
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
-
-For example:
-
-This extension contributes the following settings:
-
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
+This extension currently doesn't contribute any VS Code settings. All features work out of the box.
 
 ## Known Issues
 
-Calling out known issues can help limit users opening duplicate issues against your extension.
+- Color references (e.g., `@color/primary`) are displayed with a default grey color in the preview
+- Complex gradient fills are not yet fully supported
+- Theme attributes (e.g., `?attr/colorPrimary`) use default colors
+
+## Development
+
+### Architecture
+
+The extension follows VS Code best practices and is organized into modular components:
+
+- **`extension.ts`** - Main extension activation and registration
+- **`previewPanel.ts`** - Webview panel management for the preview feature
+- **`hoverProvider.ts`** - Hover tooltip provider for inline previews
+- **`utils.ts`** - Utility functions including XML to SVG conversion
+
+### Building from Source
+
+```bash
+# Install dependencies
+yarn install
+
+# Compile TypeScript
+yarn run compile
+
+# Watch mode for development
+yarn run watch
+
+# Run tests
+yarn run test
+```
+
+### Testing the Extension
+
+1. Press `F5` to open a new VS Code window with the extension loaded
+2. Open an Android project with vector drawable XML files
+3. Navigate to a drawable XML file in the `res/drawable/` directory
+4. Click the preview button or use the keyboard shortcut
 
 ## Release Notes
 
-Users appreciate release notes as you update your extension.
+### 1.0.0 (2025-09-30)
 
-### 1.0.0
+**Initial Release** 🎉
 
-Initial release of ...
+Features included:
 
-### 1.0.1
+- ✅ Side panel preview for Android vector drawables
+- ✅ Auto-fit scaling with zoom controls
+- ✅ Visual bounds and dimension display
+- ✅ Hover tooltips for `<vector>` and `<path>` elements
+- ✅ Real-time preview updates
+- ✅ Keyboard shortcuts and multiple access points
+- ✅ Beautiful VS Code theme-integrated UI
+- ✅ Mouse wheel zoom support
+- ✅ Checkerboard transparency background
 
-Fixed issue #.
+## Contributing
 
-### 1.1.0
+This extension is designed to be easy to maintain and extend. Contributions are welcome!
 
-Added features X, Y, and Z.
+### Future Enhancement Ideas
+
+- Support for gradient fills
+- Color resource resolution from `colors.xml`
+- Export to PNG/SVG functionality
+- Animation preview support
+- Bulk preview of multiple drawables
+- Theme preview (light/dark mode switching)
+
+## Acknowledgments
+
+Built with best practices from the [VS Code Extension API](https://code.visualstudio.com/api) documentation.
+
+## License
+
+See LICENSE file for details.
 
 ---
 
-## Following extension guidelines
-
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
-
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
-
-## Working with Markdown
-
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+**Enjoy the extension!** If you find it useful, please consider rating it on the marketplace. For issues or feature requests, please visit the [GitHub repository](https://github.com/yourusername/androidsvgsupport).
