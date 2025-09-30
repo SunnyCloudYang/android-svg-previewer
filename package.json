@@ -1,13 +1,13 @@
 {
-  "name": "androidsvgsupport",
-  "displayName": "AndroidSVGSupport",
+  "name": "androidsvgpreview",
+  "displayName": "Android SVG Previewer",
   "description": "Support svg drawable preview in Android project",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "license": "MIT",
   "publisher": "SunnyCloudYang",
   "repository": {
     "type": "git",
-    "url": "https://github.com/SunnyCloudYang/android-svg-support-for-vscode"
+    "url": "https://github.com/SunnyCloudYang/android-svg-previewer"
   },
   "keywords": [
     "android",
