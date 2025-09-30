@@ -41,7 +41,7 @@ const esbuildProblemMatcherPlugin = {
     build.onEnd((result) => {
       result.errors.forEach(({ text, location }) => {
         console.error(`✘ [ERROR] ${text}`);
-        if (location == null) return;
+        if (location === null) {return;}
         console.error(
           `    ${location.file}:${location.line}:${location.column}:`
         );
