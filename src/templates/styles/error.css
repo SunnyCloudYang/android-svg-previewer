@@ -1,0 +1,16 @@
+body {
+  margin: 0;
+  padding: 20px;
+  background-color: var(--vscode-editor-background);
+  color: var(--vscode-editor-foreground);
+  font-family: var(--vscode-font-family);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+}
+
+.error-message {
+  text-align: center;
+  color: var(--vscode-errorForeground);
+}

@@ -1,0 +1,303 @@
+body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background-color: var(--vscode-editor-background);
+  color: var(--vscode-editor-foreground);
+  font-family: var(--vscode-font-family);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  background-color: var(--vscode-editorGroupHeader-tabsBackground);
+  border-bottom: 1px solid var(--vscode-panel-border);
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.toolbar button {
+  background-color: var(--vscode-button-background);
+  color: var(--vscode-button-foreground);
+  border: none;
+  padding: 4px 8px;
+  cursor: pointer;
+  border-radius: 2px;
+  font-size: 16px;
+  min-width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.toolbar button:hover {
+  background-color: var(--vscode-button-hoverBackground);
+}
+
+.toolbar button.active {
+  background-color: var(--vscode-button-secondaryBackground);
+  border: 1px solid var(--vscode-button-border);
+}
+
+.toolbar .separator {
+  width: 1px;
+  height: 20px;
+  background-color: var(--vscode-panel-border);
+  margin: 0 4px;
+}
+
+.toolbar .info {
+  font-size: 11px;
+  color: var(--vscode-descriptionForeground);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 4px;
+}
+
+.toolbar .info-label {
+  color: var(--vscode-foreground);
+  font-weight: 500;
+}
+
+.ruler-container {
+  flex: 1;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.ruler-top {
+  height: 25px;
+  background-color: var(--vscode-editorWidget-background);
+  border-bottom: 1px solid var(--vscode-panel-border);
+  position: relative;
+  overflow: hidden;
+  margin-left: 25px;
+}
+
+.ruler-horizontal {
+  display: flex;
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+}
+
+.ruler-left {
+  width: 25px;
+  background-color: var(--vscode-editorWidget-background);
+  border-right: 1px solid var(--vscode-panel-border);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-start;
+}
+
+.ruler-marks {
+  position: absolute;
+  color: var(--vscode-descriptionForeground);
+  font-size: 9px;
+  font-family: monospace;
+  line-height: 1;
+}
+
+.ruler-marks.vertical-tick {
+  left: 0;
+  width: 100%;
+  text-align: left;
+}
+
+.ruler-tick-major {
+  color: var(--vscode-foreground);
+  font-weight: 500;
+}
+
+.ruler-tick-minor {
+  opacity: 0.6;
+}
+
+.crosshair {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 1000;
+  display: none;
+  overflow: hidden;
+}
+
+.crosshair.active {
+  display: block;
+}
+
+.crosshair-h {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background-color: var(--vscode-editorCursor-foreground);
+  opacity: 0.7;
+}
+
+.crosshair-v {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background-color: var(--vscode-editorCursor-foreground);
+  opacity: 0.7;
+}
+
+.crosshair-coords {
+  position: absolute;
+  background-color: var(--vscode-editorWidget-background);
+  color: var(--vscode-editorWidget-foreground);
+  border: 1px solid var(--vscode-panel-border);
+  padding: 2px 6px;
+  font-size: 10px;
+  font-family: monospace;
+  border-radius: 3px;
+  white-space: nowrap;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.ruler-crosshair {
+  position: absolute;
+  background-color: var(--vscode-editorCursor-foreground);
+  opacity: 0.8;
+  display: none;
+}
+
+.ruler-crosshair.active {
+  display: block;
+}
+
+.ruler-crosshair-h {
+  height: 100%;
+  width: 2px;
+  box-shadow: 0 0 3px rgba(0, 0, 0, 0.5);
+}
+
+.ruler-crosshair-v {
+  width: 100%;
+  height: 2px;
+  box-shadow: 0 0 3px rgba(0, 0, 0, 0.5);
+}
+
+.preview-container {
+  flex: 1;
+  position: relative;
+  overflow: auto;
+  background-image: linear-gradient(
+      45deg,
+      var(--vscode-editor-lineHighlightBackground) 25%,
+      transparent 25%
+    ),
+    linear-gradient(
+      -45deg,
+      var(--vscode-editor-lineHighlightBackground) 25%,
+      transparent 25%
+    ),
+    linear-gradient(
+      45deg,
+      transparent 75%,
+      var(--vscode-editor-lineHighlightBackground) 75%
+    ),
+    linear-gradient(
+      -45deg,
+      transparent 75%,
+      var(--vscode-editor-lineHighlightBackground) 75%
+    );
+  background-size: 20px 20px;
+  background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+}
+
+.preview-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.svg-container {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bounds-box {
+  position: absolute;
+  border: 2px dashed var(--vscode-editorInfo-foreground);
+  pointer-events: none;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.bounds-label {
+  position: absolute;
+  top: -20px;
+  left: 0;
+  font-size: 11px;
+  color: var(--vscode-editorInfo-foreground);
+  background-color: var(--vscode-editor-background);
+  padding: 2px 6px;
+  border-radius: 2px;
+  white-space: nowrap;
+}
+
+#svgImage {
+  display: block;
+  transition: transform 0.1s ease-out;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.zoom-controls {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background-color: var(--vscode-editorWidget-background);
+  border: 1px solid var(--vscode-panel-border);
+  border-radius: 4px;
+  padding: 4px;
+}
+
+.zoom-controls button {
+  background-color: var(--vscode-button-background);
+  color: var(--vscode-button-foreground);
+  border: none;
+  padding: 6px 12px;
+  cursor: pointer;
+  border-radius: 2px;
+  font-size: 14px;
+  min-width: 40px;
+}
+
+.zoom-controls button:hover {
+  background-color: var(--vscode-button-hoverBackground);
+}
+
+.zoom-controls .zoom-level {
+  text-align: center;
+  font-size: 12px;
+  padding: 4px;
+  color: var(--vscode-descriptionForeground);
+}

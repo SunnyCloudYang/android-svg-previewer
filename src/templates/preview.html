@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; img-src data: {{cspSource}}; style-src 'unsafe-inline'; script-src 'nonce-{{nonce}}';"
+    />
+    <title>Vector Drawable Preview</title>
+    <style>
+      {{styles}}
+    </style>
+  </head>
+  <body>
+    <div class="toolbar">
+      <div class="info">
+        <span class="info-label">Zoom:</span>
+        <span id="scaleInfo">100%</span>
+        <span class="info-label">│</span>
+        <span class="info-label">Size:</span>
+        <span id="boundsInfo">-</span>
+      </div>
+    </div>
+    <div class="ruler-container">
+      <div class="ruler-top" id="rulerTop">
+        <div
+          class="ruler-crosshair ruler-crosshair-h"
+          id="rulerCrosshairTop"
+        ></div>
+      </div>
+      <div class="ruler-horizontal">
+        <div class="ruler-left" id="rulerLeft">
+          <div
+            class="ruler-crosshair ruler-crosshair-v"
+            id="rulerCrosshairLeft"
+          ></div>
+        </div>
+        <div class="preview-container" id="previewContainer">
+          <div class="crosshair" id="crosshair">
+            <div class="crosshair-h" id="crosshairH"></div>
+            <div class="crosshair-v" id="crosshairV"></div>
+            <div class="crosshair-coords" id="crosshairCoords">0, 0</div>
+          </div>
+          <div class="preview-wrapper">
+            <div class="svg-container" id="svgContainer">
+              <div class="bounds-box">
+                <div class="bounds-label" id="boundsLabel">0 × 0 dp</div>
+              </div>
+              <img
+                id="svgImage"
+                src="{{svgDataUri}}"
+                alt="Vector Drawable Preview"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="zoom-controls">
+      <button id="crosshairBtn" title="Toggle Crosshair">⌖</button>
+      <button id="zoomInBtn2" title="Zoom In">+</button>
+      <div class="zoom-level" id="zoomLevel">100%</div>
+      <button id="zoomOutBtn2" title="Zoom Out">-</button>
+      <button id="resetZoomBtn2" title="Reset Zoom">⟲</button>
+    </div>
+
+    <script nonce="{{nonce}}">
+      {{script}}
+    </script>
+  </body>
+</html>
