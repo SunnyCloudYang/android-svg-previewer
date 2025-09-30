@@ -1,10 +1,22 @@
 {
   "name": "androidsvgsupport",
   "displayName": "AndroidSVGSupport",
-  "description": "Support svg preview and edit in Android project",
+  "description": "Support svg drawable preview in Android project",
   "version": "0.0.1",
+  "license": "MIT",
+  "publisher": "SunnyCloudYang",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/SunnyCloudYang/android-svg-support-for-vscode"
+  },
+  "keywords": [
+    "android",
+    "svg",
+    "drawable",
+    "preview"
+  ],
   "engines": {
-    "vscode": "^1.10.0"
+    "vscode": "^1.80.0"
   },
   "categories": [
     "Programming Languages",
@@ -13,7 +25,7 @@
   "activationEvents": [
     "onLanguage:xml"
   ],
-  "main": "./out/extension.js",
+  "main": "./dist/extension.js",
   "contributes": {
     "commands": [
       {
@@ -49,22 +61,31 @@
     ]
   },
   "scripts": {
-    "vscode:prepublish": "yarn run compile",
-    "compile": "tsc -p ./",
+    "vscode:prepublish": "yarn run package",
+    "compile": "yarn run check-types && node esbuild.js",
+    "check-types": "tsc --noEmit",
     "watch": "tsc -watch -p ./",
+    "watch:esbuild": "node esbuild.js --watch",
+    "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
     "pretest": "yarn run compile && yarn run lint",
     "lint": "eslint src",
-    "test": "vscode-test"
+    "test": "vscode-test",
+    "deploy": "vsce publish --yarn",
+    "package": "npm run check-types && node esbuild.js --production"
   },
   "devDependencies": {
-    "@types/vscode": "^1.104.0",
     "@types/mocha": "^10.0.10",
     "@types/node": "22.x",
+    "@types/vscode": "^1.80.0",
     "@typescript-eslint/eslint-plugin": "^8.42.0",
     "@typescript-eslint/parser": "^8.42.0",
-    "eslint": "^9.34.0",
-    "typescript": "^5.9.2",
     "@vscode/test-cli": "^0.0.11",
-    "@vscode/test-electron": "^2.5.2"
+    "@vscode/test-electron": "^2.5.2",
+    "eslint": "^9.34.0",
+    "typescript": "^5.9.2"
+  },
+  "dependencies": {
+    "@vscode/vsce": "^3.6.2",
+    "esbuild": "^0.25.10"
   }
 }
