@@ -87,7 +87,13 @@ export class AndroidVectorDrawablePreviewPanel {
 
   public update(document: vscode.TextDocument) {
     this._document = document;
-    this._panel.title = `Preview: ${document.fileName.split("/").pop()}`;
+
+    // Show relative path if a folder is opened, otherwise just the filename
+    const displayPath = vscode.workspace.workspaceFolders
+      ? vscode.workspace.asRelativePath(document.uri)
+      : path.basename(document.fileName);
+
+    this._panel.title = `Preview: ${displayPath}`;
     this._panel.webview.html = this._getHtmlForWebview(document);
   }
 

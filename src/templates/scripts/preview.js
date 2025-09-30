@@ -108,13 +108,13 @@ function zoomOut() {
 
 function resetZoom() {
 	// Calculate zoom to fit the container (with minimal padding)
-	const containerWidth = previewContainer.clientWidth - 40;
-	const containerHeight = previewContainer.clientHeight - 40;
+	const containerWidth = previewContainer.clientWidth - 80;
+	const containerHeight = previewContainer.clientHeight - 80;
 	
 	const scaleX = containerWidth / baseWidth;
 	const scaleY = containerHeight / baseHeight;
 	
-	// Allow upscaling for small images, cap at 5x for very small icons
+	// Use the min dimension for default size
 	currentZoom = Math.min(scaleX, scaleY, maxZoom);
 	applyZoom();
 }
@@ -148,9 +148,9 @@ function updateRulers() {
 	// Determine tick interval based on zoom level
 	let interval = 5;
 	
-	if (currentZoom > 8) {
+	if (currentZoom > 10) {
 		interval = 2;
-	} else if (currentZoom > 4) {
+	} else if (currentZoom > 5) {
 		interval = 5;
 	} else if (currentZoom > 2) {
 		interval = 10;
@@ -242,4 +242,9 @@ document.addEventListener('keydown', (e) => {
 		e.preventDefault();
 		resetZoom();
 	}
+});
+
+// Handle window resize to update rulers
+window.addEventListener('resize', () => {
+	updateRulers();
 });
