@@ -1,7 +1,28 @@
 const esbuild = require("esbuild");
+const fs = require("fs");
+const path = require("path");
 
 const production = process.argv.includes("--production");
 const watch = process.argv.includes("--watch");
+
+/**
+ * Copy directory recursively
+ */
+function copyDir(src, dest) {
+  fs.mkdirSync(dest, { recursive: true });
+  const entries = fs.readdirSync(src, { withFileTypes: true });
+
+  for (const entry of entries) {
+    const srcPath = path.join(src, entry.name);
+    const destPath = path.join(dest, entry.name);
+
+    if (entry.isDirectory()) {
+      copyDir(srcPath, destPath);
+    } else {
+      fs.copyFileSync(srcPath, destPath);
+    }
+  }
+}
 
 async function main() {
   const ctx = await esbuild.context({
@@ -26,6 +47,11 @@ async function main() {
     await ctx.rebuild();
     await ctx.dispose();
   }
+
+  // Copy templates to dist folder
+  console.log("Copying templates...");
+  copyDir("src/templates", "dist/templates");
+  console.log("Templates copied successfully");
 }
 
 /**

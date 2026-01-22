@@ -2,7 +2,7 @@
   "name": "androidsvgpreview",
   "displayName": "Android SVG Previewer",
   "description": "Support svg drawable preview in Android project",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "license": "MIT",
   "publisher": "SunnyCloudYang",
   "repository": {
@@ -61,16 +61,16 @@
     ]
   },
   "scripts": {
-    "vscode:prepublish": "yarn run package",
-    "compile": "yarn run check-types && node esbuild.js",
+    "vscode:prepublish": "npm run package",
+    "compile": "npm run check-types && node esbuild.js",
     "check-types": "tsc --noEmit",
     "watch": "tsc -watch -p ./",
     "watch:esbuild": "node esbuild.js --watch",
     "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
-    "pretest": "yarn run compile && yarn run lint",
+    "pretest": "npm run compile && npm run lint",
     "lint": "eslint src",
     "test": "vscode-test",
-    "deploy": "vsce publish --yarn",
+    "deploy": "vsce publish",
     "package": "npm run check-types && node esbuild.js --production"
   },
   "devDependencies": {

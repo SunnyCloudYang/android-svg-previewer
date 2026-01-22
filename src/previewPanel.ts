@@ -119,12 +119,24 @@ export class AndroidVectorDrawablePreviewPanel {
       return this._templateCache.get(templateName)!;
     }
 
-    const templatePath = path.join(
+    // Try dist/templates first (production), then src/templates (development)
+    let templatePath = path.join(
       this._extensionUri.fsPath,
-      "src",
+      "dist",
       "templates",
       templateName
     );
+
+    if (!fs.existsSync(templatePath)) {
+      // Fallback to src/templates for development
+      templatePath = path.join(
+        this._extensionUri.fsPath,
+        "src",
+        "templates",
+        templateName
+      );
+    }
+
     const content = fs.readFileSync(templatePath, "utf8");
     this._templateCache.set(templateName, content);
     return content;

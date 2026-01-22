@@ -4,7 +4,13 @@ All notable changes to the "androidsvgsupport" extension will be documented in t
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
-## [1.0.0] - 2025-09-30
+## [0.0.3] - 2026-01-22
+
+### Fixed - Fix missing template files
+
+- Fix missing template files.
+
+## [0.0.2] - 2025-09-30
 
 ### Added - Initial Release
 
