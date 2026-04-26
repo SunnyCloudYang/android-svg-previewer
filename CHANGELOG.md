@@ -4,6 +4,15 @@ All notable changes to the "androidsvgsupport" extension will be documented in t
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [0.1.2] - 2026-04-26
+
+### Fixed
+
+- **Crosshair lines**: moved overlay outside the scrollable container so lines stay locked to the cursor at all scroll and zoom levels
+- **Crosshair coordinates**: fixed SVG-space coordinate calculation (was drifting with scroll/zoom)
+- **Crosshair precision**: coordinates now show 1 decimal place at 2–9× zoom, 2 at 10–99×, 3 at 100×+
+- **Crosshair during drag**: crosshair is hidden while panning and restored with correct position on mouse release
+
 ## [0.1.1] - 2026-04-26
 
 ### Added

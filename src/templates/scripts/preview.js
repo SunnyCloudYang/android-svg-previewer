@@ -5,8 +5,10 @@ let baseWidth = {{svgWidth}};
 let baseHeight = {{svgHeight}};
 
 function getPrecision(zoom) {
-	if (zoom <= 1) return 0;
-	return Math.min(3, Math.ceil(Math.log10(zoom)));
+	if (zoom < 2)  return 0;
+	if (zoom < 10) return 1;
+	if (zoom < 100) return 2;
+	return 3;
 }
 
 const svgImage = document.getElementById('svgImage');
@@ -88,6 +90,7 @@ previewContainer.addEventListener('mousedown', (e) => {
 	dragScrollLeft = previewContainer.scrollLeft;
 	dragScrollTop  = previewContainer.scrollTop;
 	previewContainer.style.cursor = 'grabbing';
+	if (crosshairEnabled) { crosshair.classList.remove('active'); }
 	e.preventDefault();
 });
 
@@ -101,55 +104,62 @@ window.addEventListener('mouseup', (e) => {
 	if (e.button !== 0 || !isDragging) { return; }
 	isDragging = false;
 	previewContainer.style.cursor = '';
+	if (crosshairEnabled) {
+		crosshair.classList.add('active');
+		updateCrosshair(e.clientX, e.clientY);
+	}
 });
 
-// Handle crosshair movement
-previewContainer.addEventListener('mousemove', (e) => {
-	if (!crosshairEnabled || isDragging) return;
+function updateCrosshair(clientX, clientY) {
+	if (!crosshairEnabled) return;
 
-	const rect = previewContainer.getBoundingClientRect();
-	const x = e.clientX - rect.left;
-	const y = e.clientY - rect.top;
+	const chRect = crosshair.getBoundingClientRect();
+	const pcRect = previewContainer.getBoundingClientRect();
 
-	// Update crosshair lines
-	crosshairH.style.top = y + 'px';
-	crosshairV.style.left = x + 'px';
+	const cx = clientX - chRect.left;
+	const cy = clientY - chRect.top;
+	const px = clientX - pcRect.left;
+	const py = clientY - pcRect.top;
 
-	// Update crosshair markers in rulers
-	const topRect = rulerTop.getBoundingClientRect();
+	crosshairH.style.top  = cy + 'px';
+	crosshairV.style.left = cx + 'px';
+
+	const topRect  = rulerTop.getBoundingClientRect();
 	const leftRect = rulerLeft.getBoundingClientRect();
-	rulerCrosshairTop.style.left = (e.clientX - topRect.left) + 'px';
-	rulerCrosshairLeft.style.top = (e.clientY - leftRect.top) + 'px';
+	rulerCrosshairTop.style.left = (clientX - topRect.left) + 'px';
+	rulerCrosshairLeft.style.top = (clientY - leftRect.top) + 'px';
 
-	// Coordinate in SVG space: use svgContainer position (absolute in wrapper)
-	// and account for scroll to get the SVG origin in viewport coords.
-	const svgOriginX = parseInt(svgContainer.style.left || '0') - previewContainer.scrollLeft + rect.left;
-	const svgOriginY = parseInt(svgContainer.style.top  || '0') - previewContainer.scrollTop  + rect.top;
-	const rawX = (e.clientX - svgOriginX) / currentZoom;
-	const rawY = (e.clientY - svgOriginY) / currentZoom;
+	const svgOriginX = parseInt(svgContainer.style.left || '0') - previewContainer.scrollLeft;
+	const svgOriginY = parseInt(svgContainer.style.top  || '0') - previewContainer.scrollTop;
+	const rawX = (px - svgOriginX) / currentZoom;
+	const rawY = (py - svgOriginY) / currentZoom;
 
 	if (rawX >= 0 && rawX <= baseWidth && rawY >= 0 && rawY <= baseHeight) {
 		const precision = getPrecision(currentZoom);
 		crosshairCoords.textContent = rawX.toFixed(precision) + ', ' + rawY.toFixed(precision);
-		// Keep tooltip inside the panel
-		const tipX = x + 14 + 80 > rect.width  ? x - 90 : x + 14;
-		const tipY = y + 14 + 20 > rect.height ? y - 26 : y + 14;
+		const tipX = cx + 14 + 80 > chRect.width  ? cx - 90 : cx + 14;
+		const tipY = cy + 14 + 20 > chRect.height ? cy - 26 : cy + 14;
 		crosshairCoords.style.left = tipX + 'px';
 		crosshairCoords.style.top  = tipY + 'px';
 		crosshairCoords.style.display = 'block';
 	} else {
 		crosshairCoords.style.display = 'none';
 	}
+}
+
+// Handle crosshair movement
+previewContainer.addEventListener('mousemove', (e) => {
+	if (isDragging) return;
+	updateCrosshair(e.clientX, e.clientY);
 });
 
 previewContainer.addEventListener('mouseleave', () => {
 	if (!crosshairEnabled) return;
 	crosshairCoords.style.display = 'none';
-	// Hide the crosshair lines when cursor leaves the panel
 	crosshairH.style.top  = '-2px';
 	crosshairV.style.left = '-2px';
-	rulerCrosshairTop.style.left  = '-2px';
-	rulerCrosshairLeft.style.top  = '-2px';
+	rulerCrosshairTop.style.left = '-2px';
+	rulerCrosshairLeft.style.top = '-2px';
 });
 
 function zoomIn() {

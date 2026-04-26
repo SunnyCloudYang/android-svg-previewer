@@ -95,6 +95,12 @@ A Visual Studio Code extension for live preview of Android Vector Drawable XML f
 
 ## Release Notes
 
+### 0.1.2 (2026-04-26)
+- Fixed crosshair lines drifting with scroll and zoom
+- Fixed crosshair SVG-space coordinate calculation
+- Crosshair now shows sub-pixel coordinates at higher zoom levels
+- Crosshair hides during drag and restores correctly on release
+
 ### 0.1.1 (2026-04-26)
 - Added extension icon
 

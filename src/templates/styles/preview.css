@@ -87,6 +87,7 @@ body {
   position: relative;
   flex: 1;
   overflow: hidden;
+  isolation: isolate;
 }
 
 .ruler-left {
@@ -125,7 +126,7 @@ body {
 .crosshair {
   position: absolute;
   top: 0;
-  left: 0;
+  left: 25px; /* offset past ruler-left */
   right: 0;
   bottom: 0;
   pointer-events: none;
