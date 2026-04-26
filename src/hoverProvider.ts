@@ -103,7 +103,7 @@ export class AndroidVectorDrawableHoverProvider
     }
 
     // Confirm cursor is actually inside this tag
-    if (offset < pathStart || offset > pathEnd) {
+    if (offset < pathStart || offset >= pathEnd) {
       return null;
     }
 
