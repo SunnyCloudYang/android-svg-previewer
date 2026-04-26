@@ -6,9 +6,6 @@ on:
       - main
     tags:
       - "v*"
-  release:
-    types:
-      - created
 
 jobs:
   build:
@@ -42,8 +39,35 @@ jobs:
         if: runner.os != 'Linux'
         run: yarn test
 
-      - name: Publish
+      - name: Publish to Marketplace
         if: success() && startsWith(github.ref, 'refs/tags/') && matrix.os == 'ubuntu-latest'
         run: yarn run deploy
         env:
           VSCE_PAT: ${{ secrets.VSCE_PAT }}
+
+  release:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Package VSIX
+        run: yarn run package && npx vsce package
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: "*.vsix"
+          generate_release_notes: true
