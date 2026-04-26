@@ -118,19 +118,21 @@ function convertColor(color: string): string {
     return "#000000";
   }
 
-  // Handle @color/ references (use a default color)
-  if (color.startsWith("@color/") || color.startsWith("?")) {
-    return "#757575"; // Material grey
+  if (color.startsWith("@color/") || color.startsWith("?attr/") || color.startsWith("?")) {
+    // Emit a recognizable placeholder; unresolved at preview time
+    return "#757575";
   }
 
-  // Handle #AARRGGBB format (Android) -> #RRGGBBAA (CSS)
-  if (color.match(/^#[0-9A-Fa-f]{8}$/)) {
-    const alpha = color.substring(1, 3);
-    const rgb = color.substring(3);
-    return `#${rgb}${alpha}`;
+  // #AARRGGBB (Android) → rgba(r, g, b, a/255)
+  if (/^#[0-9A-Fa-f]{8}$/.test(color)) {
+    const a = parseInt(color.substring(1, 3), 16);
+    const r = parseInt(color.substring(3, 5), 16);
+    const g = parseInt(color.substring(5, 7), 16);
+    const b = parseInt(color.substring(7, 9), 16);
+    return `rgba(${r}, ${g}, ${b}, ${(a / 255).toFixed(3)})`;
   }
 
-  // Already in standard format
+  // #RRGGBB or #RGB — already valid CSS
   return color;
 }
 
