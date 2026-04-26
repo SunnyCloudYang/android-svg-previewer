@@ -5,8 +5,8 @@ let baseWidth = {{svgWidth}};
 let baseHeight = {{svgHeight}};
 
 function getPrecision(zoom) {
-    if (zoom <= 1) return 0;
-    return Math.floor(Math.log10(zoom));
+	if (zoom <= 1) return 0;
+	return Math.min(3, Math.ceil(Math.log10(zoom)));
 }
 
 const svgImage = document.getElementById('svgImage');
@@ -105,35 +105,37 @@ window.addEventListener('mouseup', (e) => {
 
 // Handle crosshair movement
 previewContainer.addEventListener('mousemove', (e) => {
-	if (!crosshairEnabled) return;
-	
+	if (!crosshairEnabled || isDragging) return;
+
 	const rect = previewContainer.getBoundingClientRect();
 	const x = e.clientX - rect.left;
 	const y = e.clientY - rect.top;
-	
-	// Update crosshair position in preview
+
+	// Update crosshair lines
 	crosshairH.style.top = y + 'px';
 	crosshairV.style.left = x + 'px';
-	
-	// Update crosshair position in rulers
+
+	// Update crosshair markers in rulers
 	const topRect = rulerTop.getBoundingClientRect();
 	const leftRect = rulerLeft.getBoundingClientRect();
 	rulerCrosshairTop.style.left = (e.clientX - topRect.left) + 'px';
 	rulerCrosshairLeft.style.top = (e.clientY - leftRect.top) + 'px';
-	
-	// Calculate coordinates relative to the SVG
-	const svgRect = svgImage.getBoundingClientRect();
-	const containerRect = previewContainer.getBoundingClientRect();
-	
-	const precision = getPrecision(currentZoom);
-	const svgX = ((e.clientX - svgRect.left) / currentZoom).toFixed(precision);
-	const svgY = ((e.clientY - svgRect.top) / currentZoom).toFixed(precision);
 
-	// Only show coordinates if cursor is over the SVG
-	if (parseFloat(svgX) >= 0 && parseFloat(svgX) <= baseWidth && parseFloat(svgY) >= 0 && parseFloat(svgY) <= baseHeight) {
-		crosshairCoords.textContent = svgX + ', ' + svgY;
-		crosshairCoords.style.left = (x + 10) + 'px';
-		crosshairCoords.style.top = (y + 10) + 'px';
+	// Coordinate in SVG space: use svgContainer position (absolute in wrapper)
+	// and account for scroll to get the SVG origin in viewport coords.
+	const svgOriginX = parseInt(svgContainer.style.left || '0') - previewContainer.scrollLeft + rect.left;
+	const svgOriginY = parseInt(svgContainer.style.top  || '0') - previewContainer.scrollTop  + rect.top;
+	const rawX = (e.clientX - svgOriginX) / currentZoom;
+	const rawY = (e.clientY - svgOriginY) / currentZoom;
+
+	if (rawX >= 0 && rawX <= baseWidth && rawY >= 0 && rawY <= baseHeight) {
+		const precision = getPrecision(currentZoom);
+		crosshairCoords.textContent = rawX.toFixed(precision) + ', ' + rawY.toFixed(precision);
+		// Keep tooltip inside the panel
+		const tipX = x + 14 + 80 > rect.width  ? x - 90 : x + 14;
+		const tipY = y + 14 + 20 > rect.height ? y - 26 : y + 14;
+		crosshairCoords.style.left = tipX + 'px';
+		crosshairCoords.style.top  = tipY + 'px';
 		crosshairCoords.style.display = 'block';
 	} else {
 		crosshairCoords.style.display = 'none';
@@ -141,9 +143,13 @@ previewContainer.addEventListener('mousemove', (e) => {
 });
 
 previewContainer.addEventListener('mouseleave', () => {
-	if (crosshairEnabled) {
-		crosshairCoords.style.display = 'none';
-	}
+	if (!crosshairEnabled) return;
+	crosshairCoords.style.display = 'none';
+	// Hide the crosshair lines when cursor leaves the panel
+	crosshairH.style.top  = '-2px';
+	crosshairV.style.left = '-2px';
+	rulerCrosshairTop.style.left  = '-2px';
+	rulerCrosshairLeft.style.top  = '-2px';
 });
 
 function zoomIn() {
