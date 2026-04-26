@@ -26,6 +26,11 @@ const minZoom = 0.25;
 const zoomStep = 0.25;
 
 let crosshairEnabled = false;
+let isDragging = false;
+let dragStartX = 0;
+let dragStartY = 0;
+let dragScrollLeft = 0;
+let dragScrollTop = 0;
 
 // Initialize on image load
 svgImage.onload = function() {
@@ -69,6 +74,29 @@ previewContainer.addEventListener('wheel', (e) => {
 	previewContainer.scrollLeft = newSvgOriginX + svgX * currentZoom - pointerX;
 	previewContainer.scrollTop  = newSvgOriginY + svgY * currentZoom - pointerY;
 }, { passive: false });
+
+previewContainer.addEventListener('mousedown', (e) => {
+	if (e.button !== 0) { return; }
+	isDragging = true;
+	dragStartX = e.clientX;
+	dragStartY = e.clientY;
+	dragScrollLeft = previewContainer.scrollLeft;
+	dragScrollTop  = previewContainer.scrollTop;
+	previewContainer.style.cursor = 'grabbing';
+	e.preventDefault();
+});
+
+window.addEventListener('mousemove', (e) => {
+	if (!isDragging) { return; }
+	previewContainer.scrollLeft = dragScrollLeft - (e.clientX - dragStartX);
+	previewContainer.scrollTop  = dragScrollTop  - (e.clientY - dragStartY);
+});
+
+window.addEventListener('mouseup', (e) => {
+	if (e.button !== 0 || !isDragging) { return; }
+	isDragging = false;
+	previewContainer.style.cursor = '';
+});
 
 // Handle crosshair movement
 previewContainer.addEventListener('mousemove', (e) => {
