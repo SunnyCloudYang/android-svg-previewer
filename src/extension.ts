@@ -9,7 +9,6 @@ import { isAndroidVectorDrawable } from "./utils";
 export function activate(context: vscode.ExtensionContext) {
   console.log("AndroidSVGSupport extension is now active!");
 
-  // Register the preview command
   const previewCommand = vscode.commands.registerCommand(
     "androidsvgsupport.showPreview",
     () => {
@@ -34,13 +33,11 @@ export function activate(context: vscode.ExtensionContext) {
     }
   );
 
-  // Register the hover provider for XML files
   const hoverProvider = vscode.languages.registerHoverProvider(
     { language: "xml", pattern: "**/drawable/**/*.xml" },
     new AndroidVectorDrawableHoverProvider()
   );
 
-  // Watch for active editor changes to update preview
   const editorChangeListener = vscode.window.onDidChangeActiveTextEditor(
     (editor) => {
       if (editor && isAndroidVectorDrawable(editor.document)) {
@@ -49,11 +46,16 @@ export function activate(context: vscode.ExtensionContext) {
     }
   );
 
-  // Watch for document changes to update preview
+  let debounceTimer: ReturnType<typeof setTimeout> | undefined;
   const documentChangeListener = vscode.workspace.onDidChangeTextDocument(
     (event) => {
       if (isAndroidVectorDrawable(event.document)) {
-        AndroidVectorDrawablePreviewPanel.updateIfVisible(event.document);
+        if (debounceTimer) {
+          clearTimeout(debounceTimer);
+        }
+        debounceTimer = setTimeout(() => {
+          AndroidVectorDrawablePreviewPanel.updateIfVisible(event.document);
+        }, 300);
       }
     }
   );
