@@ -152,7 +152,7 @@ function convertChildren(xml: string, tint: string | null): string {
 
     if (xml[tagStart + 1] === "/" || xml[tagStart + 1] === "?") {
       const tagEnd = xml.indexOf(">", tagStart);
-      i = tagEnd + 1;
+      i = tagEnd === -1 ? xml.length : tagEnd + 1;
       continue;
     }
 
@@ -165,7 +165,7 @@ function convertChildren(xml: string, tint: string | null): string {
     if (tagName === "path") {
       const tagEnd = xml.indexOf(">", tagStart);
       const rawTag = xml.substring(tagStart, tagEnd + 1);
-      const attrsStr = rawTag.substring(tagName.length + 1, rawTag.endsWith("/>") ? rawTag.length - 2 : rawTag.length - 1);
+      const attrsStr = rawTag.substring(tagName.length + 2, rawTag.endsWith("/>") ? rawTag.length - 2 : rawTag.length - 1);
       result += convertPathElement(attrsStr, tint);
       i = tagEnd + 1;
     } else if (tagName === "group") {
@@ -173,7 +173,7 @@ function convertChildren(xml: string, tint: string | null): string {
       const rawOpenTag = xml.substring(tagStart, tagEnd + 1);
       const isSelfClosing = rawOpenTag.endsWith("/>");
 
-      const attrsStr = rawOpenTag.substring(tagName.length + 1, isSelfClosing ? rawOpenTag.length - 2 : rawOpenTag.length - 1);
+      const attrsStr = rawOpenTag.substring(tagName.length + 2, isSelfClosing ? rawOpenTag.length - 2 : rawOpenTag.length - 1);
       const transform = buildTransform(attrsStr);
 
       if (isSelfClosing) {
@@ -196,7 +196,7 @@ function convertChildren(xml: string, tint: string | null): string {
 
         if (nextOpen !== -1 && nextOpen < nextClose) {
           depth++;
-          searchFrom = nextOpen + 1;
+          searchFrom = nextOpen + tagName.length + 1;
         } else {
           depth--;
           if (depth === 0) {
