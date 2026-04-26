@@ -20,7 +20,6 @@ export function isAndroidVectorDrawable(
  */
 export function convertVectorDrawableToSVG(xmlContent: string): string | null {
   try {
-    // Parse the vector drawable attributes
     const vectorMatch = xmlContent.match(/<vector([^>]*)>/);
     if (!vectorMatch) {
       return null;
@@ -28,13 +27,11 @@ export function convertVectorDrawableToSVG(xmlContent: string): string | null {
 
     const vectorAttrs = vectorMatch[1];
 
-    // Extract viewportWidth and viewportHeight
     const viewportWidth =
       extractAttribute(vectorAttrs, "android:viewportWidth") || "24";
     const viewportHeight =
       extractAttribute(vectorAttrs, "android:viewportHeight") || "24";
 
-    // Extract width and height (default to viewport if not specified)
     const width =
       extractAttribute(vectorAttrs, "android:width")?.replace(/dp$/, "") ||
       viewportWidth;
@@ -42,57 +39,17 @@ export function convertVectorDrawableToSVG(xmlContent: string): string | null {
       extractAttribute(vectorAttrs, "android:height")?.replace(/dp$/, "") ||
       viewportHeight;
 
-    // Extract tint if present
     const tint = extractAttribute(vectorAttrs, "android:tint");
     const alpha = extractAttribute(vectorAttrs, "android:alpha");
 
-    // Convert paths
-    const pathRegex = /<path([^>]*)\/?>(?:<\/path>)?/g;
-    let paths = "";
-    let match;
+    const vectorOpenEnd = xmlContent.indexOf(">", xmlContent.indexOf("<vector"));
+    const vectorCloseStart = xmlContent.lastIndexOf("</vector>");
+    const innerXml = vectorCloseStart !== -1
+      ? xmlContent.substring(vectorOpenEnd + 1, vectorCloseStart)
+      : xmlContent.substring(vectorOpenEnd + 1);
 
-    while ((match = pathRegex.exec(xmlContent)) !== null) {
-      const pathAttrs = match[1];
-      const pathData = extractAttribute(pathAttrs, "android:pathData");
-      const fillColor =
-        extractAttribute(pathAttrs, "android:fillColor") || tint || "#000000";
-      const strokeColor = extractAttribute(pathAttrs, "android:strokeColor");
-      const strokeWidth = extractAttribute(pathAttrs, "android:strokeWidth");
-      const fillAlpha = extractAttribute(pathAttrs, "android:fillAlpha");
-      const strokeAlpha = extractAttribute(pathAttrs, "android:strokeAlpha");
-      const fillType = extractAttribute(pathAttrs, "android:fillType");
+    const paths = convertChildren(innerXml, tint);
 
-      if (pathData) {
-        let pathElement = `<path d="${pathData}"`;
-
-        if (fillColor && fillColor !== "none") {
-          const color = convertColor(fillColor);
-          pathElement += ` fill="${color}"`;
-          if (fillAlpha) {
-            pathElement += ` fill-opacity="${fillAlpha}"`;
-          }
-        }
-
-        if (fillType === "evenOdd") {
-          pathElement += ` fill-rule="evenodd"`;
-        }
-
-        if (strokeColor) {
-          pathElement += ` stroke="${convertColor(strokeColor)}"`;
-          if (strokeWidth) {
-            pathElement += ` stroke-width="${strokeWidth}"`;
-          }
-          if (strokeAlpha) {
-            pathElement += ` stroke-opacity="${strokeAlpha}"`;
-          }
-        }
-
-        pathElement += " />\n";
-        paths += pathElement;
-      }
-    }
-
-    // Build SVG
     const opacityAttr = alpha ? ` opacity="${alpha}"` : "";
     const svg = `<?xml version="1.0" encoding="utf-8"?>
 <svg xmlns="http://www.w3.org/2000/svg"
@@ -115,6 +72,163 @@ function extractAttribute(attrs: string, name: string): string | null {
   const regex = new RegExp(`${name}="([^"]*)"`, "i");
   const match = attrs.match(regex);
   return match ? match[1] : null;
+}
+
+function buildTransform(attrs: string): string {
+  const translateX = parseFloat(extractAttribute(attrs, "android:translateX") || "0");
+  const translateY = parseFloat(extractAttribute(attrs, "android:translateY") || "0");
+  const rotation = parseFloat(extractAttribute(attrs, "android:rotation") || "0");
+  const pivotX = parseFloat(extractAttribute(attrs, "android:pivotX") || "0");
+  const pivotY = parseFloat(extractAttribute(attrs, "android:pivotY") || "0");
+  const scaleX = parseFloat(extractAttribute(attrs, "android:scaleX") || "1");
+  const scaleY = parseFloat(extractAttribute(attrs, "android:scaleY") || "1");
+
+  const parts: string[] = [];
+  if (translateX !== 0 || translateY !== 0) {
+    parts.push(`translate(${translateX}, ${translateY})`);
+  }
+  if (rotation !== 0) {
+    if (pivotX !== 0 || pivotY !== 0) {
+      parts.push(`rotate(${rotation}, ${pivotX}, ${pivotY})`);
+    } else {
+      parts.push(`rotate(${rotation})`);
+    }
+  }
+  if (scaleX !== 1 || scaleY !== 1) {
+    parts.push(`scale(${scaleX}, ${scaleY})`);
+  }
+  return parts.join(" ");
+}
+
+function convertPathElement(pathAttrs: string, tint: string | null): string {
+  const pathData = extractAttribute(pathAttrs, "android:pathData");
+  if (!pathData) {
+    return "";
+  }
+
+  const fillColor = extractAttribute(pathAttrs, "android:fillColor") || tint || "#000000";
+  const strokeColor = extractAttribute(pathAttrs, "android:strokeColor");
+  const strokeWidth = extractAttribute(pathAttrs, "android:strokeWidth");
+  const fillAlpha = extractAttribute(pathAttrs, "android:fillAlpha");
+  const strokeAlpha = extractAttribute(pathAttrs, "android:strokeAlpha");
+  const fillType = extractAttribute(pathAttrs, "android:fillType");
+
+  let el = `<path d="${pathData}"`;
+
+  if (fillColor && fillColor !== "none") {
+    el += ` fill="${convertColor(fillColor)}"`;
+    if (fillAlpha) {
+      el += ` fill-opacity="${fillAlpha}"`;
+    }
+  }
+
+  if (fillType === "evenOdd") {
+    el += ` fill-rule="evenodd"`;
+  }
+
+  if (strokeColor) {
+    el += ` stroke="${convertColor(strokeColor)}"`;
+    if (strokeWidth) {
+      el += ` stroke-width="${strokeWidth}"`;
+    }
+    if (strokeAlpha) {
+      el += ` stroke-opacity="${strokeAlpha}"`;
+    }
+  }
+
+  el += " />\n";
+  return el;
+}
+
+function convertChildren(xml: string, tint: string | null): string {
+  let result = "";
+  let i = 0;
+
+  while (i < xml.length) {
+    const tagStart = xml.indexOf("<", i);
+    if (tagStart === -1) {
+      break;
+    }
+
+    if (xml[tagStart + 1] === "/" || xml[tagStart + 1] === "?") {
+      const tagEnd = xml.indexOf(">", tagStart);
+      i = tagEnd + 1;
+      continue;
+    }
+
+    let nameEnd = tagStart + 1;
+    while (nameEnd < xml.length && !/[\s>\/]/.test(xml[nameEnd])) {
+      nameEnd++;
+    }
+    const tagName = xml.substring(tagStart + 1, nameEnd);
+
+    if (tagName === "path") {
+      const tagEnd = xml.indexOf(">", tagStart);
+      const rawTag = xml.substring(tagStart, tagEnd + 1);
+      const attrsStr = rawTag.substring(tagName.length + 1, rawTag.endsWith("/>") ? rawTag.length - 2 : rawTag.length - 1);
+      result += convertPathElement(attrsStr, tint);
+      i = tagEnd + 1;
+    } else if (tagName === "group") {
+      const tagEnd = xml.indexOf(">", tagStart);
+      const rawOpenTag = xml.substring(tagStart, tagEnd + 1);
+      const isSelfClosing = rawOpenTag.endsWith("/>");
+
+      const attrsStr = rawOpenTag.substring(tagName.length + 1, isSelfClosing ? rawOpenTag.length - 2 : rawOpenTag.length - 1);
+      const transform = buildTransform(attrsStr);
+
+      if (isSelfClosing) {
+        i = tagEnd + 1;
+        continue;
+      }
+
+      const closeTag = `</${tagName}>`;
+      let depth = 1;
+      let searchFrom = tagEnd + 1;
+      let closePos = -1;
+
+      while (depth > 0) {
+        const nextOpen = xml.indexOf(`<${tagName}`, searchFrom);
+        const nextClose = xml.indexOf(closeTag, searchFrom);
+
+        if (nextClose === -1) {
+          break;
+        }
+
+        if (nextOpen !== -1 && nextOpen < nextClose) {
+          depth++;
+          searchFrom = nextOpen + 1;
+        } else {
+          depth--;
+          if (depth === 0) {
+            closePos = nextClose;
+          } else {
+            searchFrom = nextClose + closeTag.length;
+          }
+        }
+      }
+
+      if (closePos === -1) {
+        i = tagEnd + 1;
+        continue;
+      }
+
+      const innerXml = xml.substring(tagEnd + 1, closePos);
+      const innerSvg = convertChildren(innerXml, tint);
+
+      if (transform) {
+        result += `<g transform="${transform}">\n${innerSvg}</g>\n`;
+      } else {
+        result += `<g>\n${innerSvg}</g>\n`;
+      }
+
+      i = closePos + closeTag.length;
+    } else {
+      const tagEnd = xml.indexOf(">", tagStart);
+      i = tagEnd === -1 ? xml.length : tagEnd + 1;
+    }
+  }
+
+  return result;
 }
 
 /**
