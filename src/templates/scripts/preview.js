@@ -60,7 +60,7 @@ previewContainer.addEventListener('wheel', (e) => {
 	const svgY = (pointerY + previewContainer.scrollTop  - svgOriginY) / currentZoom;
 
 	// Multiplicative zoom: each notch scales by 15%
-	const factor = e.deltaY < 0 ? 1.15 : 1 / 1.15;
+	const factor = e.deltaY < 0 ? 1.06 : 1 / 1.06;
 	currentZoom = Math.max(minZoom, Math.min(maxZoom, currentZoom * factor));
 
 	applyZoom();
