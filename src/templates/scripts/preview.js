@@ -4,6 +4,11 @@ let currentZoom = 1.0;
 let baseWidth = {{svgWidth}};
 let baseHeight = {{svgHeight}};
 
+function getPrecision(zoom) {
+    if (zoom <= 1) return 0;
+    return Math.floor(Math.log10(zoom));
+}
+
 const svgImage = document.getElementById('svgImage');
 const svgContainer = document.getElementById('svgContainer');
 const previewContainer = document.getElementById('previewContainer');
@@ -120,11 +125,12 @@ previewContainer.addEventListener('mousemove', (e) => {
 	const svgRect = svgImage.getBoundingClientRect();
 	const containerRect = previewContainer.getBoundingClientRect();
 	
-	const svgX = Math.round((e.clientX - svgRect.left) / currentZoom);
-	const svgY = Math.round((e.clientY - svgRect.top) / currentZoom);
-	
+	const precision = getPrecision(currentZoom);
+	const svgX = ((e.clientX - svgRect.left) / currentZoom).toFixed(precision);
+	const svgY = ((e.clientY - svgRect.top) / currentZoom).toFixed(precision);
+
 	// Only show coordinates if cursor is over the SVG
-	if (svgX >= 0 && svgX <= baseWidth && svgY >= 0 && svgY <= baseHeight) {
+	if (parseFloat(svgX) >= 0 && parseFloat(svgX) <= baseWidth && parseFloat(svgY) >= 0 && parseFloat(svgY) <= baseHeight) {
 		crosshairCoords.textContent = svgX + ', ' + svgY;
 		crosshairCoords.style.left = (x + 10) + 'px';
 		crosshairCoords.style.top = (y + 10) + 'px';
