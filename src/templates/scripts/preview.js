@@ -44,15 +44,34 @@ document.getElementById('zoomOutBtn2').addEventListener('click', zoomOut);
 document.getElementById('resetZoomBtn2').addEventListener('click', resetZoom);
 crosshairBtn.addEventListener('click', toggleCrosshair);
 
-// Handle wheel zoom
+// Handle wheel zoom — zoom toward pointer, no modifier key required
 previewContainer.addEventListener('wheel', (e) => {
-	if (e.ctrlKey || e.metaKey) {
-		e.preventDefault();
-		const delta = e.deltaY > 0 ? -0.1 : 0.1;
-		currentZoom = Math.max(minZoom, Math.min(maxZoom, currentZoom + delta));
-		applyZoom();
-	}
-});
+	e.preventDefault();
+
+	const rect = previewContainer.getBoundingClientRect();
+	// Pointer position relative to the scroll container viewport
+	const pointerX = e.clientX - rect.left;
+	const pointerY = e.clientY - rect.top;
+
+	// SVG-space coordinate under the pointer before zoom
+	const svgOriginX = parseInt(svgContainer.style.left || '0');
+	const svgOriginY = parseInt(svgContainer.style.top  || '0');
+	const svgX = (pointerX + previewContainer.scrollLeft - svgOriginX) / currentZoom;
+	const svgY = (pointerY + previewContainer.scrollTop  - svgOriginY) / currentZoom;
+
+	// Multiplicative zoom: each notch scales by 15%
+	const factor = e.deltaY < 0 ? 1.15 : 1 / 1.15;
+	currentZoom = Math.max(minZoom, Math.min(maxZoom, currentZoom * factor));
+
+	applyZoom();
+
+	// After applyZoom the wrapper/SVG have been repositioned.
+	// Scroll so the same SVG-space point stays under the pointer.
+	const newSvgOriginX = parseInt(svgContainer.style.left || '0');
+	const newSvgOriginY = parseInt(svgContainer.style.top  || '0');
+	previewContainer.scrollLeft = newSvgOriginX + svgX * currentZoom - pointerX;
+	previewContainer.scrollTop  = newSvgOriginY + svgY * currentZoom - pointerY;
+}, { passive: false });
 
 // Handle crosshair movement
 previewContainer.addEventListener('mousemove', (e) => {
