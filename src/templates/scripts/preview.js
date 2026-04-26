@@ -53,9 +53,10 @@ previewContainer.addEventListener('wheel', (e) => {
 	const pointerX = e.clientX - rect.left;
 	const pointerY = e.clientY - rect.top;
 
-	// SVG is always at PAD inside the wrapper
-	const svgX = (pointerX + previewContainer.scrollLeft - PAD) / currentZoom;
-	const svgY = (pointerY + previewContainer.scrollTop  - PAD) / currentZoom;
+	const svgOriginX = parseInt(svgContainer.style.left || '0');
+	const svgOriginY = parseInt(svgContainer.style.top  || '0');
+	const svgX = (pointerX + previewContainer.scrollLeft - svgOriginX) / currentZoom;
+	const svgY = (pointerY + previewContainer.scrollTop  - svgOriginY) / currentZoom;
 
 	// 3% per notch
 	const factor = e.deltaY < 0 ? 1.02 : 1 / 1.02;
@@ -63,8 +64,10 @@ previewContainer.addEventListener('wheel', (e) => {
 
 	applyZoom();
 
-	previewContainer.scrollLeft = PAD + svgX * currentZoom - pointerX;
-	previewContainer.scrollTop  = PAD + svgY * currentZoom - pointerY;
+	const newSvgOriginX = parseInt(svgContainer.style.left || '0');
+	const newSvgOriginY = parseInt(svgContainer.style.top  || '0');
+	previewContainer.scrollLeft = newSvgOriginX + svgX * currentZoom - pointerX;
+	previewContainer.scrollTop  = newSvgOriginY + svgY * currentZoom - pointerY;
 }, { passive: false });
 
 // Handle crosshair movement
@@ -126,10 +129,14 @@ function resetZoom() {
 	currentZoom = Math.min(containerWidth / baseWidth, containerHeight / baseHeight, maxZoom);
 	applyZoom();
 
-	// Center by scrolling: wrapper = svgSize + 2*PAD, so center scroll = (wrapW - containerW) / 2
-	const wrapW = baseWidth * currentZoom + PAD * 2;
-	const wrapH = baseHeight * currentZoom + PAD * 2;
-	previewContainer.scrollLeft = (wrapW - previewContainer.clientWidth) / 2;
+	// applyZoom centers the SVG inside the wrapper via (wrapW - width) / 2.
+	// When SVG fits inside the container, wrapW === containerW and scroll is 0 — already centered.
+	// When SVG is larger, scroll to center: (wrapW - containerW) / 2.
+	const width = baseWidth * currentZoom;
+	const height = baseHeight * currentZoom;
+	const wrapW = Math.max(previewContainer.clientWidth,  width  + PAD * 2);
+	const wrapH = Math.max(previewContainer.clientHeight, height + PAD * 2);
+	previewContainer.scrollLeft = (wrapW - previewContainer.clientWidth)  / 2;
 	previewContainer.scrollTop  = (wrapH - previewContainer.clientHeight) / 2;
 }
 
@@ -146,19 +153,22 @@ function applyZoom() {
 	svgContainer.style.height = height + 'px';
 	svgContainer.style.margin = '0';
 
-	// Wrapper is always exactly SVG + PAD on all sides — never clamped to
-	// containerW/H. Centering is done via scrollLeft/scrollTop, not by
-	// changing offsetX/Y, so zoom-toward-pointer works at all zoom levels.
-	const wrapW = width + PAD * 2;
-	const wrapH = height + PAD * 2;
+	// Wrapper must be at least as large as the container so scroll origin is
+	// always reachable. Extra space beyond SVG+PAD is split evenly so the SVG
+	// appears centered when small, while the scroll math stays exact.
+	const containerW = previewContainer.clientWidth;
+	const containerH = previewContainer.clientHeight;
+	const wrapW = Math.max(containerW, width + PAD * 2);
+	const wrapH = Math.max(containerH, height + PAD * 2);
+	const svgLeft = Math.floor((wrapW - width) / 2);
+	const svgTop  = Math.floor((wrapH - height) / 2);
 	const previewWrapper = svgContainer.parentElement;
 	previewWrapper.style.width = wrapW + 'px';
 	previewWrapper.style.height = wrapH + 'px';
 
-	// SVG is always at (PAD, PAD) inside the wrapper.
 	svgContainer.style.position = 'absolute';
-	svgContainer.style.left = PAD + 'px';
-	svgContainer.style.top = PAD + 'px';
+	svgContainer.style.left = svgLeft + 'px';
+	svgContainer.style.top  = svgTop  + 'px';
 
 	updateZoomInfo();
 	updateRulers();
@@ -191,9 +201,9 @@ function updateRulers() {
 		interval = 50;
 	}
 
-	// SVG origin in viewport coords: SVG is always at PAD inside the wrapper
-	const svgLeft = PAD - previewContainer.scrollLeft;
-	const svgTop  = PAD - previewContainer.scrollTop;
+	// SVG origin in viewport coords (accounts for scroll)
+	const svgLeft = parseInt(svgContainer.style.left || '0') - previewContainer.scrollLeft;
+	const svgTop  = parseInt(svgContainer.style.top  || '0') - previewContainer.scrollTop;
 
 	// Draw horizontal ruler (top)
 	rulerTop.innerHTML = '';
