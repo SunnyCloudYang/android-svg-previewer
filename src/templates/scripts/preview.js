@@ -119,6 +119,8 @@ function resetZoom() {
 	applyZoom();
 }
 
+const PAD = 40;
+
 function applyZoom() {
 	const width = baseWidth * currentZoom;
 	const height = baseHeight * currentZoom;
@@ -128,15 +130,24 @@ function applyZoom() {
 
 	svgContainer.style.width = width + 'px';
 	svgContainer.style.height = height + 'px';
+	svgContainer.style.margin = '0';
 
-	// Center the container when smaller than the viewport, otherwise give a
-	// fixed padding so the bounds box is never flush against the scroll edge.
-	const pad = 40;
+	// Size the wrapper to exactly SVG + padding on all sides.
+	// This defines the scroll content area, so left/top are always reachable.
 	const containerW = previewContainer.clientWidth;
 	const containerH = previewContainer.clientHeight;
-	const marginH = Math.max(pad, Math.floor((containerW - width) / 2));
-	const marginV = Math.max(pad, Math.floor((containerH - height) / 2));
-	svgContainer.style.margin = marginV + 'px ' + marginH + 'px';
+	const wrapW = Math.max(containerW, width + PAD * 2);
+	const wrapH = Math.max(containerH, height + PAD * 2);
+	const previewWrapper = svgContainer.parentElement;
+	previewWrapper.style.width = wrapW + 'px';
+	previewWrapper.style.height = wrapH + 'px';
+
+	// Center the SVG inside the wrapper.
+	const offsetX = Math.floor((wrapW - width) / 2);
+	const offsetY = Math.floor((wrapH - height) / 2);
+	svgContainer.style.position = 'absolute';
+	svgContainer.style.left = offsetX + 'px';
+	svgContainer.style.top = offsetY + 'px';
 
 	updateZoomInfo();
 	updateRulers();
@@ -169,58 +180,64 @@ function updateRulers() {
 		interval = 50;
 	}
 
+	// SVG origin in viewport coords (accounts for scroll)
+	const svgLeft = parseInt(svgContainer.style.left || '0') - previewContainer.scrollLeft;
+	const svgTop  = parseInt(svgContainer.style.top  || '0') - previewContainer.scrollTop;
+
 	// Draw horizontal ruler (top)
 	rulerTop.innerHTML = '';
 	const maxWidth = baseWidth;
 	const drawnPositions = new Set();
-	
-	// Draw regular ticks
+
 	for (let i = 0; i <= maxWidth; i += interval) {
 		drawnPositions.add(i);
+		const pos = svgLeft + i * currentZoom;
+		if (pos < -20 || pos > previewContainer.clientWidth + 20) { continue; }
 		const mark = document.createElement('div');
 		mark.className = 'ruler-marks ruler-tick-major';
-		const pos = (previewContainer.clientWidth / 2) - (baseWidth * currentZoom / 2) + (i * currentZoom);
 		mark.style.left = pos + 'px';
 		mark.style.bottom = '0px';
 		mark.innerHTML = '<span style="position:absolute;top:0px;left:50%;transform:translateX(-50%);white-space:nowrap;">' + i + '</span><br><span style="padding-top:2px;">│</span>';
 		rulerTop.appendChild(mark);
 	}
-	
-	// Always add final tick if not already present
+
 	if (!drawnPositions.has(maxWidth)) {
-		const mark = document.createElement('div');
-		mark.className = 'ruler-marks ruler-tick-major';
-		const pos = (previewContainer.clientWidth / 2) - (baseWidth * currentZoom / 2) + (maxWidth * currentZoom);
-		mark.style.left = pos + 'px';
-		mark.style.bottom = '0px';
-		mark.innerHTML = '<span style="position:absolute;top:0px;left:50%;transform:translateX(-50%);white-space:nowrap;">' + maxWidth + '</span><br><span style="padding-top:2px;">│</span>';
-		rulerTop.appendChild(mark);
+		const pos = svgLeft + maxWidth * currentZoom;
+		if (pos >= -20 && pos <= previewContainer.clientWidth + 20) {
+			const mark = document.createElement('div');
+			mark.className = 'ruler-marks ruler-tick-major';
+			mark.style.left = pos + 'px';
+			mark.style.bottom = '0px';
+			mark.innerHTML = '<span style="position:absolute;top:0px;left:50%;transform:translateX(-50%);white-space:nowrap;">' + maxWidth + '</span><br><span style="padding-top:2px;">│</span>';
+			rulerTop.appendChild(mark);
+		}
 	}
 
 	// Draw vertical ruler (left)
 	rulerLeft.innerHTML = '';
 	const maxHeight = baseHeight;
 	drawnPositions.clear();
-	
-	// Draw regular ticks
+
 	for (let i = 0; i <= maxHeight; i += interval) {
 		drawnPositions.add(i);
+		const pos = svgTop + i * currentZoom;
+		if (pos < -20 || pos > previewContainer.clientHeight + 20) { continue; }
 		const mark = document.createElement('div');
 		mark.className = 'ruler-marks ruler-tick-major vertical-tick';
-		const pos = (previewContainer.clientHeight / 2) - (baseHeight * currentZoom / 2) + (i * currentZoom);
 		mark.style.top = pos + 'px';
 		mark.innerHTML = '<span style="position:absolute;left:2px;top:-4px;white-space:nowrap;">' + i + '</span><span style="position:absolute;right:0px;top:-4px;">─</span>';
 		rulerLeft.appendChild(mark);
 	}
-	
-	// Always add final tick if not already present
+
 	if (!drawnPositions.has(maxHeight)) {
-		const mark = document.createElement('div');
-		mark.className = 'ruler-marks ruler-tick-major vertical-tick';
-		const pos = (previewContainer.clientHeight / 2) - (baseHeight * currentZoom / 2) + (maxHeight * currentZoom);
-		mark.style.top = pos + 'px';
-		mark.innerHTML = '<span style="position:absolute;left:2px;top:-4px;white-space:nowrap;">' + maxHeight + '</span><span style="position:absolute;right:0px;top:-4px;">─</span>';
-		rulerLeft.appendChild(mark);
+		const pos = svgTop + maxHeight * currentZoom;
+		if (pos >= -20 && pos <= previewContainer.clientHeight + 20) {
+			const mark = document.createElement('div');
+			mark.className = 'ruler-marks ruler-tick-major vertical-tick';
+			mark.style.top = pos + 'px';
+			mark.innerHTML = '<span style="position:absolute;left:2px;top:-4px;white-space:nowrap;">' + maxHeight + '</span><span style="position:absolute;right:0px;top:-4px;">─</span>';
+			rulerLeft.appendChild(mark);
+		}
 	}
 }
 
@@ -253,7 +270,12 @@ document.addEventListener('keydown', (e) => {
 	}
 });
 
-// Handle window resize to update rulers
+// Handle window resize to update rulers and wrapper size
 window.addEventListener('resize', () => {
+	applyZoom();
+});
+
+// Update ruler tick positions when scrolling
+previewContainer.addEventListener('scroll', () => {
 	updateRulers();
 });
