@@ -3,6 +3,8 @@ import * as path from "path";
 import * as fs from "fs";
 import { convertVectorDrawableToSVG, getNonce } from "./utils";
 
+const templateCache = new Map<string, string>();
+
 /**
  * Manages the webview panel for Android vector drawable preview
  */
@@ -14,7 +16,7 @@ export class AndroidVectorDrawablePreviewPanel {
   private readonly _extensionUri: vscode.Uri;
   private _disposables: vscode.Disposable[] = [];
   private _document: vscode.TextDocument | undefined;
-  private _templateCache: Map<string, string> = new Map();
+  private _disposed = false;
 
   public static createOrShow(
     extensionUri: vscode.Uri,
@@ -98,9 +100,12 @@ export class AndroidVectorDrawablePreviewPanel {
   }
 
   public dispose() {
+    if (this._disposed) {
+      return;
+    }
+    this._disposed = true;
     AndroidVectorDrawablePreviewPanel.currentPanel = undefined;
 
-    // Clean up resources
     this._panel.dispose();
 
     while (this._disposables.length) {
@@ -115,11 +120,10 @@ export class AndroidVectorDrawablePreviewPanel {
    * Load a template file from the templates directory
    */
   private loadTemplate(templateName: string): string {
-    if (this._templateCache.has(templateName)) {
-      return this._templateCache.get(templateName)!;
+    if (templateCache.has(templateName)) {
+      return templateCache.get(templateName)!;
     }
 
-    // Try dist/templates first (production), then src/templates (development)
     let templatePath = path.join(
       this._extensionUri.fsPath,
       "dist",
@@ -128,7 +132,6 @@ export class AndroidVectorDrawablePreviewPanel {
     );
 
     if (!fs.existsSync(templatePath)) {
-      // Fallback to src/templates for development
       templatePath = path.join(
         this._extensionUri.fsPath,
         "src",
@@ -137,9 +140,13 @@ export class AndroidVectorDrawablePreviewPanel {
       );
     }
 
-    const content = fs.readFileSync(templatePath, "utf8");
-    this._templateCache.set(templateName, content);
-    return content;
+    try {
+      const content = fs.readFileSync(templatePath, "utf8");
+      templateCache.set(templateName, content);
+      return content;
+    } catch (err) {
+      throw new Error(`Failed to load template "${templateName}" from ${templatePath}: ${err}`);
+    }
   }
 
   /**
@@ -173,46 +180,41 @@ export class AndroidVectorDrawablePreviewPanel {
       );
     }
 
-    // Extract dimensions from SVG for JavaScript
     const widthMatch = svgContent.match(/width="([^"]+)"/);
     const heightMatch = svgContent.match(/height="([^"]+)"/);
     const svgWidth = widthMatch ? widthMatch[1] : "24";
     const svgHeight = heightMatch ? heightMatch[1] : "24";
 
-    // Encode SVG for data URI
     const svgDataUri = `data:image/svg+xml;base64,${Buffer.from(
       svgContent
     ).toString("base64")}`;
 
-    // Load templates
-    const htmlTemplate = this.loadTemplate("preview.html");
-    const cssTemplate = this.loadTemplate("styles/preview.css");
-    const jsTemplate = this.loadTemplate("scripts/preview.js");
+    try {
+      const htmlTemplate = this.loadTemplate("preview.html");
+      const cssTemplate = this.loadTemplate("styles/preview.css");
+      const jsTemplate = this.loadTemplate("scripts/preview.js");
 
-    // Render script with SVG dimensions
-    const script = this.renderTemplate(jsTemplate, {
-      svgWidth,
-      svgHeight,
-    });
+      const script = this.renderTemplate(jsTemplate, { svgWidth, svgHeight });
 
-    // Render final HTML
-    return this.renderTemplate(htmlTemplate, {
-      nonce,
-      cspSource: this._panel.webview.cspSource,
-      styles: cssTemplate,
-      svgDataUri,
-      script,
-    });
+      return this.renderTemplate(htmlTemplate, {
+        nonce,
+        cspSource: this._panel.webview.cspSource,
+        styles: cssTemplate,
+        svgDataUri,
+        script,
+      });
+    } catch (err) {
+      return this._getErrorHtml(nonce, `Template load error: ${err}`);
+    }
   }
 
   private _getErrorHtml(nonce: string, errorMessage: string): string {
-    const htmlTemplate = this.loadTemplate("error.html");
-    const cssTemplate = this.loadTemplate("styles/error.css");
-
-    return this.renderTemplate(htmlTemplate, {
-      nonce,
-      styles: cssTemplate,
-      errorMessage,
-    });
+    try {
+      const htmlTemplate = this.loadTemplate("error.html");
+      const cssTemplate = this.loadTemplate("styles/error.css");
+      return this.renderTemplate(htmlTemplate, { nonce, styles: cssTemplate, errorMessage });
+    } catch {
+      return `<!DOCTYPE html><html><body><p style="color:red;font-family:sans-serif;padding:20px">${errorMessage}</p></body></html>`;
+    }
   }
 }
