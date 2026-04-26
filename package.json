@@ -2,7 +2,7 @@
   "name": "androidsvgpreview",
   "displayName": "Android SVG Previewer",
   "description": "Support svg drawable preview in Android project",
-  "version": "0.0.3",
+  "version": "0.1.0",
   "license": "MIT",
   "publisher": "SunnyCloudYang",
   "repository": {

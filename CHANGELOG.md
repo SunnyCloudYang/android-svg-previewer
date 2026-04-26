@@ -4,6 +4,31 @@ All notable changes to the "androidsvgsupport" extension will be documented in t
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [0.1.0] - 2026-04-26
+
+### Added
+
+- **`<group>` element support**: Nested `<group>` tags are now converted to SVG `<g>` elements with full transform support (`translateX/Y`, `rotation`, `pivotX/Y`, `scaleX/Y`)
+- **`android:alpha`**: Root `<vector>` alpha attribute is now applied as SVG `opacity`
+- **`android:fillType`**: `evenOdd` fill type is now correctly mapped to `fill-rule="evenodd"`
+- **Drag to pan**: Hold left mouse button and drag to pan the preview
+- **Zoom toward pointer**: Ctrl/Cmd + scroll now zooms toward the cursor position at all zoom levels
+
+### Fixed
+
+- **Color conversion**: `#AARRGGBB` Android colors are now correctly converted to `rgba()` instead of invalid 8-digit CSS hex
+- **Bounds box**: The dashed bounds border now always tracks the SVG at any zoom level and scroll position
+- **Rulers**: Ruler tick marks now update correctly when scrolling
+- **Hover provider**: Path hover no longer fires when cursor is between two `<path>` tags
+- **Preview command**: Title bar button now works reliably without a race condition on focus
+- **Double-dispose**: Closing the preview panel no longer causes a double-dispose error
+- **Template load crash**: Missing template files now show an error panel instead of crashing the extension host
+- **Keystroke performance**: Preview no longer re-renders on every keystroke — debounced to 300ms
+
+### Removed
+
+- Unused `TemplateEngine` class (dead code)
+
 ## [0.0.3] - 2026-01-22
 
 ### Fixed - Fix missing template files
