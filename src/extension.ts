@@ -11,8 +11,15 @@ export function activate(context: vscode.ExtensionContext) {
 
   const previewCommand = vscode.commands.registerCommand(
     "androidsvgsupport.showPreview",
-    () => {
-      const editor = vscode.window.activeTextEditor;
+    (uri?: vscode.Uri) => {
+      // When invoked from editor/title the URI is passed as first arg.
+      // Fall back to activeTextEditor for keybinding / command palette invocations.
+      const editor = uri
+        ? vscode.window.visibleTextEditors.find(
+            (e) => e.document.uri.toString() === uri.toString()
+          )
+        : vscode.window.activeTextEditor;
+
       if (!editor) {
         vscode.window.showErrorMessage("No active editor found");
         return;
