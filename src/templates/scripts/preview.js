@@ -129,15 +129,12 @@ function resetZoom() {
 	currentZoom = Math.min(containerWidth / baseWidth, containerHeight / baseHeight, maxZoom);
 	applyZoom();
 
-	// applyZoom centers the SVG inside the wrapper via (wrapW - width) / 2.
-	// When SVG fits inside the container, wrapW === containerW and scroll is 0 — already centered.
-	// When SVG is larger, scroll to center: (wrapW - containerW) / 2.
-	const width = baseWidth * currentZoom;
-	const height = baseHeight * currentZoom;
-	const wrapW = Math.max(previewContainer.clientWidth,  width  + PAD * 2);
-	const wrapH = Math.max(previewContainer.clientHeight, height + PAD * 2);
-	previewContainer.scrollLeft = (wrapW - previewContainer.clientWidth)  / 2;
-	previewContainer.scrollTop  = (wrapH - previewContainer.clientHeight) / 2;
+	// wrapW = svgW + containerW, svgLeft = containerW/2.
+	// To center: scrollLeft = svgLeft + svgW/2 - containerW/2 = svgW/2.
+	const svgW = baseWidth  * currentZoom;
+	const svgH = baseHeight * currentZoom;
+	previewContainer.scrollLeft = svgW / 2;
+	previewContainer.scrollTop  = svgH / 2;
 }
 
 const PAD = 40;
@@ -153,15 +150,14 @@ function applyZoom() {
 	svgContainer.style.height = height + 'px';
 	svgContainer.style.margin = '0';
 
-	// Wrapper must be at least as large as the container so scroll origin is
-	// always reachable. Extra space beyond SVG+PAD is split evenly so the SVG
-	// appears centered when small, while the scroll math stays exact.
+	// Wrapper = SVG + one full viewport on each side. This guarantees a scroll
+	// range even when the SVG is tiny, so pointer-zoom scroll is never clamped.
 	const containerW = previewContainer.clientWidth;
 	const containerH = previewContainer.clientHeight;
-	const wrapW = Math.max(containerW, width + PAD * 2);
-	const wrapH = Math.max(containerH, height + PAD * 2);
-	const svgLeft = Math.floor((wrapW - width) / 2);
-	const svgTop  = Math.floor((wrapH - height) / 2);
+	const wrapW = width  + containerW;
+	const wrapH = height + containerH;
+	const svgLeft = Math.floor(containerW / 2);
+	const svgTop  = Math.floor(containerH / 2);
 	const previewWrapper = svgContainer.parentElement;
 	previewWrapper.style.width = wrapW + 'px';
 	previewWrapper.style.height = wrapH + 'px';
