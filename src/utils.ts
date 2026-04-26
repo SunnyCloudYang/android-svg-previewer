@@ -44,6 +44,7 @@ export function convertVectorDrawableToSVG(xmlContent: string): string | null {
 
     // Extract tint if present
     const tint = extractAttribute(vectorAttrs, "android:tint");
+    const alpha = extractAttribute(vectorAttrs, "android:alpha");
 
     // Convert paths
     const pathRegex = /<path([^>]*)\/?>(?:<\/path>)?/g;
@@ -59,6 +60,7 @@ export function convertVectorDrawableToSVG(xmlContent: string): string | null {
       const strokeWidth = extractAttribute(pathAttrs, "android:strokeWidth");
       const fillAlpha = extractAttribute(pathAttrs, "android:fillAlpha");
       const strokeAlpha = extractAttribute(pathAttrs, "android:strokeAlpha");
+      const fillType = extractAttribute(pathAttrs, "android:fillType");
 
       if (pathData) {
         let pathElement = `<path d="${pathData}"`;
@@ -69,6 +71,10 @@ export function convertVectorDrawableToSVG(xmlContent: string): string | null {
           if (fillAlpha) {
             pathElement += ` fill-opacity="${fillAlpha}"`;
           }
+        }
+
+        if (fillType === "evenOdd") {
+          pathElement += ` fill-rule="evenodd"`;
         }
 
         if (strokeColor) {
@@ -87,11 +93,12 @@ export function convertVectorDrawableToSVG(xmlContent: string): string | null {
     }
 
     // Build SVG
+    const opacityAttr = alpha ? ` opacity="${alpha}"` : "";
     const svg = `<?xml version="1.0" encoding="utf-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" 
-     width="${width}" 
-     height="${height}" 
-     viewBox="0 0 ${viewportWidth} ${viewportHeight}">
+<svg xmlns="http://www.w3.org/2000/svg"
+     width="${width}"
+     height="${height}"
+     viewBox="0 0 ${viewportWidth} ${viewportHeight}"${opacityAttr}>
 ${paths}</svg>`;
 
     return svg;
