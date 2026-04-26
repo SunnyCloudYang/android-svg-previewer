@@ -1,80 +1,74 @@
-# Android SVG Support
+# Android SVG Previewer
 
-A Visual Studio Code extension that provides comprehensive support for Android Vector Drawable files with live preview, hover tooltips, and advanced viewing features.
+A Visual Studio Code extension for live preview of Android Vector Drawable XML files, with zoom, pan, rulers, crosshair, and hover tooltips.
 
 ## Features
 
-### 🎨 Live Preview Panel
+### Live Preview Panel
 
-- **Side-by-side preview** of Android vector drawable XML files
-- Opens automatically in a split view when you click the preview button
-- Real-time updates as you edit the XML source code
-- Beautiful modern UI with VS Code theme integration
+- Side-by-side preview that opens in a split view beside the editor
+- Real-time updates as you edit (debounced 300ms)
+- VS Code theme-integrated UI with checkerboard transparency background
 
-![Preview Panel Feature](https://via.placeholder.com/600x300?text=Preview+Panel)
+### Zoom & Pan
 
-### 🔍 Smart Zoom & Scaling
+- **Auto-fit** on open — scales the drawable to fill the panel
+- **Zoom toward pointer** — Ctrl/Cmd + scroll zooms in on the cursor position
+- **Drag to pan** — hold left mouse button and drag
+- **Keyboard shortcuts** — `+`/`-` to zoom, `0` to reset to fit
+- **Floating zoom controls** in the preview panel
+- Zoom range: 25% – 5000%
 
-- **Auto-fit to panel** - Automatically scales drawables to fit the preview panel
-- **Interactive zoom controls** - Zoom in/out with buttons or keyboard shortcuts
-- **Mouse wheel zoom** - Ctrl/Cmd + Mouse Wheel for precise zoom control
-- **Scale indicator** - Always shows current zoom percentage
-- **Visual bounds display** - Dashed border showing the drawable boundaries with dimensions
+### Rulers & Crosshair
 
-### 📐 Visual Information Display
+- Pixel rulers along the top and left edges, updating as you scroll and zoom
+- Toggle crosshair overlay with coordinate readout (coordinates in SVG space)
 
-- **Dimensions display** - Shows the actual size and viewport dimensions
-- **Scale percentage** - Real-time scale information in the toolbar
-- **Bounds overlay** - Visual representation of the drawable's bounds
-- **Checkerboard background** - Professional transparency background pattern
+### Visual Bounds
 
-### 💡 Hover Preview (Quick Preview)
+- Dashed border tracks the exact drawable boundary at any zoom level
+- Dimension label shows width × height in pixels
 
-- **Instant preview on hover** - Hover over `<vector>` or `<path>` tags to see a preview
-- **Individual path preview** - See individual paths when hovering over `<path>` elements
-- **Color information** - Shows fill and stroke colors in the hover tooltip
-- **Dimension details** - Displays size and viewport information
+### Hover Tooltips
 
-### ⚡ Smart Features
+- Hover over `<vector>` to see a full drawable preview inline
+- Hover over `<path>` to see that path's preview with fill/stroke color info
 
-- **Automatic detection** - Only activates for Android vector drawable XML files
-- **Real-time sync** - Preview updates automatically when you edit the source
-- **Keyboard shortcuts** - Ctrl+Shift+V (Cmd+Shift+V on Mac) to open preview
-- **Multiple access points** - Available via command palette, editor title button, and context menu
+### Android Vector Drawable Support
+
+- `<path>` with `pathData`, `fillColor`, `strokeColor`, `fillAlpha`, `strokeAlpha`, `fillType`
+- `<group>` with full transform support: `translateX/Y`, `rotation`, `pivotX/Y`, `scaleX/Y`
+- `android:alpha` on `<vector>` mapped to SVG `opacity`
+- `#AARRGGBB` Android colors correctly converted to `rgba()`
+- `android:fillType="evenOdd"` mapped to `fill-rule="evenodd"`
 
 ## Usage
 
 ### Opening the Preview
 
-There are multiple ways to open the vector drawable preview:
-
-1. **Editor Title Button**: Click the preview icon in the editor title bar when viewing a drawable XML file
-2. **Context Menu**: Right-click in the editor and select "Show Vector Drawable Preview"
-3. **Command Palette**: Press `Ctrl+Shift+P` (or `Cmd+Shift+P` on Mac) and type "Show Vector Drawable Preview"
-4. **Keyboard Shortcut**: Press `Ctrl+Shift+V` (or `Cmd+Shift+V` on Mac)
+| Method | Action |
+|---|---|
+| Editor title bar | Click the preview icon when a drawable XML is open |
+| Context menu | Right-click → "Show Vector Drawable Preview" |
+| Command Palette | `Show Vector Drawable Preview` |
+| Keyboard shortcut | `Ctrl+Shift+V` / `Cmd+Shift+V` |
 
 ### Zoom Controls
 
-- **Zoom In**: Click the "+" button, press `+` or `=` key
-- **Zoom Out**: Click the "-" button, press `-` or `_` key
-- **Fit to View**: Click "Fit to View" button or press `0` key
-- **Mouse Wheel**: Hold `Ctrl` (or `Cmd` on Mac) and scroll
-
-### Hover Previews
-
-Simply hover your mouse over:
-
-- **`<vector>` tag** - See the complete drawable preview
-- **`<path>` tag** - See individual path preview with color information
+| Action | How |
+|---|---|
+| Zoom in | `+` or `=`, or click `+` button |
+| Zoom out | `-` or `_`, or click `-` button |
+| Fit to view | `0`, or click fit button |
+| Zoom toward pointer | Ctrl/Cmd + scroll wheel |
+| Pan | Hold left mouse button and drag |
 
 ## Requirements
 
-- Visual Studio Code version 1.10.0 or higher
-- Android vector drawable XML files (typically in `res/drawable/` directory)
+- VS Code 1.80.0 or higher
+- Android vector drawable XML files (typically in `res/drawable/`)
 
-## Supported File Format
-
-This extension works with Android Vector Drawable XML files that contain a `<vector>` root element:
+## Supported Format
 
 ```xml
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
@@ -82,95 +76,47 @@ This extension works with Android Vector Drawable XML files that contain a `<vec
     android:height="24dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
+  <group
+      android:translateX="2"
+      android:rotation="45">
     <path
         android:fillColor="#FF000000"
         android:pathData="M12,2L2,7v10c0,5.55,3.84,10.74,9,12c5.16,-1.26,9,-6.45,9,-12V7L12,2z"/>
+  </group>
 </vector>
 ```
 
-## Extension Settings
+## Known Limitations
 
-This extension currently doesn't contribute any VS Code settings. All features work out of the box.
-
-## Known Issues
-
-- Color references (e.g., `@color/primary`) are displayed with a default grey color in the preview
-- Complex gradient fills are not yet fully supported
-- Theme attributes (e.g., `?attr/colorPrimary`) use default colors
-
-## Development
-
-### Architecture
-
-The extension follows VS Code best practices and is organized into modular components:
-
-- **`extension.ts`** - Main extension activation and registration
-- **`previewPanel.ts`** - Webview panel management for the preview feature
-- **`hoverProvider.ts`** - Hover tooltip provider for inline previews
-- **`utils.ts`** - Utility functions including XML to SVG conversion
-
-### Building from Source
-
-```bash
-# Install dependencies
-yarn install
-
-# Compile TypeScript
-yarn run compile
-
-# Watch mode for development
-yarn run watch
-
-# Run tests
-yarn run test
-```
-
-### Testing the Extension
-
-1. Press `F5` to open a new VS Code window with the extension loaded
-2. Open an Android project with vector drawable XML files
-3. Navigate to a drawable XML file in the `res/drawable/` directory
-4. Click the preview button or use the keyboard shortcut
+- Color references (`@color/primary`) render as default grey
+- Theme attributes (`?attr/colorPrimary`) use default colors
+- Gradient fills not yet supported
+- Animation not yet supported
 
 ## Release Notes
 
-### 1.0.0 (2025-09-30)
+### 0.1.1 (2026-04-26)
+- Added extension icon
 
-**Initial Release** 🎉
+### 0.1.0 (2026-04-26)
+- `<group>` element support with full transform
+- `android:alpha`, `android:fillType` support
+- Drag to pan
+- Zoom toward pointer at all zoom levels
+- Fixed `#AARRGGBB` color conversion
+- Fixed bounds box tracking at all zoom levels
+- Fixed ruler tick updates on scroll
+- Fixed hover provider false positives between `<path>` tags
+- Fixed race condition on preview button click
+- Fixed double-dispose on panel close
+- Debounced preview re-render to 300ms
 
-Features included:
+### 0.0.3 (2026-01-22)
+- Fixed missing template files
 
-- ✅ Side panel preview for Android vector drawables
-- ✅ Auto-fit scaling with zoom controls
-- ✅ Visual bounds and dimension display
-- ✅ Hover tooltips for `<vector>` and `<path>` elements
-- ✅ Real-time preview updates
-- ✅ Keyboard shortcuts and multiple access points
-- ✅ Beautiful VS Code theme-integrated UI
-- ✅ Mouse wheel zoom support
-- ✅ Checkerboard transparency background
-
-## Contributing
-
-This extension is designed to be easy to maintain and extend. Contributions are welcome!
-
-### Future Enhancement Ideas
-
-- Support for gradient fills
-- Color resource resolution from `colors.xml`
-- Export to PNG/SVG functionality
-- Animation preview support
-- Bulk preview of multiple drawables
-- Theme preview (light/dark mode switching)
-
-## Acknowledgments
-
-Built with best practices from the [VS Code Extension API](https://code.visualstudio.com/api) documentation.
+### 0.0.2 (2025-09-30)
+- Initial release
 
 ## License
 
-See LICENSE file for details.
-
----
-
-**Enjoy the extension!** If you find it useful, please consider rating it on the marketplace. For issues or feature requests, please visit the [GitHub repository](https://github.com/yourusername/androidsvgsupport).
+MIT
