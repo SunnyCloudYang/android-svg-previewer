@@ -80,34 +80,35 @@ export class AndroidVectorDrawableHoverProvider
     document: vscode.TextDocument,
     position: vscode.Position
   ): vscode.Hover | null {
-    // Find the complete path element
     const text = document.getText();
     const offset = document.offsetAt(position);
 
-    // Find the start of the path tag
-    let pathStart = text.lastIndexOf("<path", offset);
+    const pathStart = text.lastIndexOf("<path", offset);
     if (pathStart === -1) {
       return null;
     }
 
-    // Find the end of the path tag
     let pathEnd = text.indexOf("/>", pathStart);
     if (pathEnd === -1) {
       pathEnd = text.indexOf("</path>", pathStart);
       if (pathEnd !== -1) {
-        pathEnd += 7; // length of '</path>'
+        pathEnd += 7;
       }
     } else {
-      pathEnd += 2; // length of '/>'
+      pathEnd += 2;
     }
 
     if (pathEnd === -1) {
+      return null;
+    }
+
+    // Confirm cursor is actually inside this tag
+    if (offset < pathStart || offset > pathEnd) {
       return null;
     }
 
     const pathElement = text.substring(pathStart, pathEnd);
 
-    // Extract path data
     const pathDataMatch = pathElement.match(/android:pathData="([^"]*)"/);
     const fillColorMatch = pathElement.match(/android:fillColor="([^"]*)"/);
     const strokeColorMatch = pathElement.match(/android:strokeColor="([^"]*)"/);
@@ -116,11 +117,9 @@ export class AndroidVectorDrawableHoverProvider
       return null;
     }
 
-    // Create a minimal SVG for this path
     const fillColor = fillColorMatch ? fillColorMatch[1] : "#000000";
     const strokeColor = strokeColorMatch ? strokeColorMatch[1] : "none";
 
-    // Get viewport dimensions from the parent vector
     const viewportWidthMatch = text.match(/android:viewportWidth="([^"]*)"/);
     const viewportHeightMatch = text.match(/android:viewportHeight="([^"]*)"/);
     const viewportWidth = viewportWidthMatch ? viewportWidthMatch[1] : "24";
@@ -128,7 +127,7 @@ export class AndroidVectorDrawableHoverProvider
 
     const pathSvg = `<?xml version="1.0" encoding="utf-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 ${viewportWidth} ${viewportHeight}">
-	<path d="${pathDataMatch[1]}" fill="${fillColor}" stroke="${strokeColor}" />
+\t<path d="${pathDataMatch[1]}" fill="${fillColor}" stroke="${strokeColor}" />
 </svg>`;
 
     const svgDataUri = `data:image/svg+xml;base64,${Buffer.from(
