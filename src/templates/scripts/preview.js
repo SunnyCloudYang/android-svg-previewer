@@ -122,13 +122,22 @@ function resetZoom() {
 function applyZoom() {
 	const width = baseWidth * currentZoom;
 	const height = baseHeight * currentZoom;
-	
+
 	svgImage.style.width = width + 'px';
 	svgImage.style.height = height + 'px';
-	
+
 	svgContainer.style.width = width + 'px';
 	svgContainer.style.height = height + 'px';
-	
+
+	// Center the container when smaller than the viewport, otherwise give a
+	// fixed padding so the bounds box is never flush against the scroll edge.
+	const pad = 40;
+	const containerW = previewContainer.clientWidth;
+	const containerH = previewContainer.clientHeight;
+	const marginH = Math.max(pad, Math.floor((containerW - width) / 2));
+	const marginV = Math.max(pad, Math.floor((containerH - height) / 2));
+	svgContainer.style.margin = marginV + 'px ' + marginH + 'px';
+
 	updateZoomInfo();
 	updateRulers();
 }

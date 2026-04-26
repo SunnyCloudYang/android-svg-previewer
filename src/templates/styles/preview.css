@@ -221,13 +221,7 @@ body {
 }
 
 .preview-wrapper {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  min-width: 100%;
-  min-height: 100%;
-  box-sizing: border-box;
+  display: block;
 }
 
 .svg-container {
