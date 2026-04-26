@@ -214,7 +214,8 @@ export class AndroidVectorDrawablePreviewPanel {
       const cssTemplate = this.loadTemplate("styles/error.css");
       return this.renderTemplate(htmlTemplate, { nonce, styles: cssTemplate, errorMessage });
     } catch {
-      return `<!DOCTYPE html><html><body><p style="color:red;font-family:sans-serif;padding:20px">${errorMessage}</p></body></html>`;
+      const safe = errorMessage.replace(/[&<>"]/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"})[c] ?? c);
+      return `<!DOCTYPE html><html><body><p style="color:red;font-family:sans-serif;padding:20px">${safe}</p></body></html>`;
     }
   }
 }
