@@ -72,6 +72,7 @@
     "lint": "eslint src",
     "test": "vscode-test",
     "deploy": "vsce publish",
+    "deploy:ovsx": "ovsx publish",
     "package": "npm run check-types && node esbuild.js --production"
   },
   "devDependencies": {
@@ -83,6 +84,7 @@
     "@vscode/test-cli": "^0.0.11",
     "@vscode/test-electron": "^2.5.2",
     "eslint": "^9.34.0",
+    "ovsx": "^0.10.0",
     "typescript": "^5.9.2"
   },
   "dependencies": {
